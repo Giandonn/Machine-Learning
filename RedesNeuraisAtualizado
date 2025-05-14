@@ -1,0 +1,170 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyMVawE1EYzUe9GDT1Z3K6cG",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/Giandonn/Machine-Learning/blob/main/RedesNeuraisAtualizado\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "1g1b-rQM834g",
+        "outputId": "1b465340-41be-4639-9e99-9651ba75af88"
+      },
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Downloading data from https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz\n",
+            "\u001b[1m170498071/170498071\u001b[0m \u001b[32m━━━━━━━━━━━━━━━━━━━━\u001b[0m\u001b[37m\u001b[0m \u001b[1m2s\u001b[0m 0us/step\n",
+            "\n",
+            "Geracao 1\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": [
+            "/usr/local/lib/python3.11/dist-packages/keras/src/layers/convolutional/base_conv.py:107: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.\n",
+            "  super().__init__(activity_regularizer=activity_regularizer, **kwargs)\n"
+          ]
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Individuo 1: {'num_filters': 32, 'kernel_size': 5, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.4945\n",
+            "Individuo 2: {'num_filters': 64, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 128, 'optimizer': 'adam'}, Acuracia: 0.4980\n",
+            "Individuo 3: {'num_filters': 64, 'kernel_size': 5, 'dropout_rate': 0.25, 'dense_units': 128, 'optimizer': 'sgd'}, Acuracia: 0.3220\n",
+            "Individuo 4: {'num_filters': 64, 'kernel_size': 5, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'sgd'}, Acuracia: 0.2910\n",
+            "\n",
+            "Geracao 2\n",
+            "Individuo 1: {'num_filters': 64, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 128, 'optimizer': 'adam'}, Acuracia: 0.4995\n",
+            "Individuo 2: {'num_filters': 32, 'kernel_size': 5, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.4795\n",
+            "Individuo 3: {'num_filters': 32, 'kernel_size': 5, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.4835\n",
+            "Individuo 4: {'num_filters': 32, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.4660\n",
+            "\n",
+            "Geracao 3\n",
+            "Individuo 1: {'num_filters': 64, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 128, 'optimizer': 'adam'}, Acuracia: 0.4830\n",
+            "Individuo 2: {'num_filters': 32, 'kernel_size': 5, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.4710\n",
+            "Individuo 3: {'num_filters': 32, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 128, 'optimizer': 'adam'}, Acuracia: 0.4690\n",
+            "Individuo 4: {'num_filters': 32, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}, Acuracia: 0.5005\n",
+            "\n",
+            "Melhor modelo final:\n",
+            "{'num_filters': 32, 'kernel_size': 3, 'dropout_rate': 0.5, 'dense_units': 64, 'optimizer': 'adam'}\n"
+          ]
+        }
+      ],
+      "source": [
+        "import random\n",
+        "import numpy as np\n",
+        "import tensorflow as tf\n",
+        "from tensorflow.keras import layers, models, optimizers\n",
+        "from tensorflow.keras.datasets import cifar10\n",
+        "from tensorflow.keras.utils import to_categorical\n",
+        "\n",
+        "(x_train, y_train), (x_test, y_test) = cifar10.load_data()\n",
+        "x_train, x_test = x_train / 255.0, x_test / 255.0\n",
+        "y_train, y_test = to_categorical(y_train), to_categorical(y_test)\n",
+        "\n",
+        "param_space = {\n",
+        "    'num_filters': [32, 64, 128],\n",
+        "    'kernel_size': [3, 5],\n",
+        "    'dropout_rate': [0.25, 0.5],\n",
+        "    'dense_units': [64, 128],\n",
+        "    'optimizer': ['adam', 'sgd']\n",
+        "}\n",
+        "\n",
+        "def create_individual():\n",
+        "    return {\n",
+        "        'num_filters': random.choice(param_space['num_filters']),\n",
+        "        'kernel_size': random.choice(param_space['kernel_size']),\n",
+        "        'dropout_rate': random.choice(param_space['dropout_rate']),\n",
+        "        'dense_units': random.choice(param_space['dense_units']),\n",
+        "        'optimizer': random.choice(param_space['optimizer'])\n",
+        "    }\n",
+        "\n",
+        "def build_model(ind):\n",
+        "    model = models.Sequential()\n",
+        "    model.add(layers.Conv2D(ind['num_filters'], (ind['kernel_size'], ind['kernel_size']), activation='relu', input_shape=(32, 32, 3)))\n",
+        "    model.add(layers.MaxPooling2D((2, 2)))\n",
+        "    model.add(layers.Flatten())\n",
+        "    model.add(layers.Dropout(ind['dropout_rate']))\n",
+        "    model.add(layers.Dense(ind['dense_units'], activation='relu'))\n",
+        "    model.add(layers.Dense(10, activation='softmax'))\n",
+        "\n",
+        "    opt = optimizers.Adam() if ind['optimizer'] == 'adam' else optimizers.SGD()\n",
+        "    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])\n",
+        "    return model\n",
+        "\n",
+        "def fitness(ind):\n",
+        "    model = build_model(ind)\n",
+        "    history = model.fit(x_train[:10000], y_train[:10000], epochs=3, batch_size=64, verbose=0, validation_split=0.2)\n",
+        "    return history.history['val_accuracy'][-1]\n",
+        "\n",
+        "def crossover(p1, p2):\n",
+        "    child = {}\n",
+        "    for key in p1:\n",
+        "        child[key] = random.choice([p1[key], p2[key]])\n",
+        "    return child\n",
+        "\n",
+        "def mutate(ind):\n",
+        "    key = random.choice(list(param_space.keys()))\n",
+        "    ind[key] = random.choice(param_space[key])\n",
+        "    return ind\n",
+        "\n",
+        "pop_size = 4\n",
+        "num_generations = 3\n",
+        "mutation_rate = 0.3\n",
+        "\n",
+        "population = [create_individual() for _ in range(pop_size)]\n",
+        "\n",
+        "for generation in range(num_generations):\n",
+        "    print(f\"\\nGeracao {generation+1}\")\n",
+        "    scores = [fitness(ind) for ind in population]\n",
+        "    for i, (ind, score) in enumerate(zip(population, scores)):\n",
+        "        print(f\"Individuo {i+1}: {ind}, Acuracia: {score:.4f}\")\n",
+        "\n",
+        "    sorted_population = [x for _, x in sorted(zip(scores, population), key=lambda pair: pair[0], reverse=True)]\n",
+        "    population = sorted_population[:2]\n",
+        "\n",
+        "    while len(population) < pop_size:\n",
+        "        p1, p2 = random.sample(population[:2], 2)\n",
+        "        child = crossover(p1, p2)\n",
+        "        if random.random() < mutation_rate:\n",
+        "            child = mutate(child)\n",
+        "        population.append(child)\n",
+        "\n",
+        "print(\"\\nMelhor modelo final:\")\n",
+        "best_model = population[0]\n",
+        "print(best_model)\n"
+      ]
+    }
+  ]
+}
